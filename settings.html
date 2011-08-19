@@ -1,0 +1,109 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>CPAN Helper</title>
+<style>
+html, body{
+  border: 0;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+body {
+  font-size: 12px;
+  font-family: "Helvetica Neue", "Lucida Grande", Arial, Helvetica, "Hiragino Kaku Gothic Pro", "ヒラギノ角ゴ Pro W3", Meiryo, sans-serif;
+  font-weight: lighter;
+  background: #fff;
+  color: #141414;
+}
+a, a:visited {
+  color: #666;
+  text-decoration: none;
+}
+a:hover {
+  background: #fff;
+  color: #0571A0;
+}
+ul, ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+li {
+  margin: 0;
+  padding: 0;
+}
+#wrapper {
+  margin: 0 auto;
+  padding: 20px 0;
+  width: 600px;
+}
+#wrapper h1 {
+  font-weight: 100;
+  font-size: 50px;
+  letter-spacing: -1px;
+  line-height: 80%;
+  color: #666;
+}
+#wrapper h2 {
+  font-weight: 200;
+  font-size: 20px;
+}
+#settings li {
+  margin: 0 0 10px 0;
+}
+#settings .description {
+  font-size: 10px;
+  color: #666;
+  margin-left: 20px;
+}
+</style>
+<script>
+function init(){
+  var settings = JSON.parse(localStorage.getItem('settings'));
+  document.getElementById('notify-setting').checked = settings.notify;
+  document.getElementById('display-time').value = settings.display;
+}
+
+function save(){
+  var settings = {
+    notify: document.getElementById('notify-setting').checked,
+    display: document.getElementById('display-time').value
+  };
+  localStorage.setItem('settings', JSON.stringify(settings));
+}
+
+function saveAndClose(){
+  save();
+  chrome.tabs.getSelected(null, function(tab) {
+    chrome.tabs.remove(tab.id);
+  });
+}
+</script>
+</head>
+<body onload="init();">
+<div id="wrapper">
+  <h1>CPAN Helper</h1>
+  <h2>Settings</h2>
+  <ul id="settings">
+    <li>
+      <input type="checkbox" id="notify-setting">
+      <label for="notify-setting">Desktop notification</label><br />
+    </li>
+    <li>
+      Duration for desktop notification:&nbsp;
+      <select id="display-time">
+        <option value="0">0</option>
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="15">15</option>
+        <option value="20">20</option>
+      </select>&nbsp;sec
+    </li>
+      <button id="saveAndClose" onclick="saveAndClose()">Save &amp; Close</button>
+    </li>
+  </ul>
+</div>
+</body>
+</html>

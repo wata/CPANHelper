@@ -1,0 +1,36 @@
+{
+  "name": "CPAN Helper",
+  "version": "0.1",
+  "description": "Tiny helper extension for CPAN",
+  "icons": {
+    "16": "icon_16.png",
+    "48": "icon_48.png",
+    "128": "icon_128.png"
+  },
+  "omnibox": {
+    "keyword": "CPAN"
+  },
+  "browser_action": {
+    "default_icon": "icon_19.png",
+    "default_title": "CPAN Helper"
+  },
+  "background_page": "background.html",
+  "content_scripts": [
+  {
+      "matches": ["http://metacpan.org/*", "https://metacpan.org/*"],
+      "js": ["content_script.js"],
+      "run_at": "document_end"
+  }
+  ],
+  "permissions": [
+    "background",
+    "contextMenus",
+    "tabs",
+    "notifications",
+    "http://metacpan.org/*",
+    "https://metacpan.org/*"
+  ],
+  "homepage_url": "https://github.com/wata/CPANHelper",
+  "options_page": "settings.html"
+}
+

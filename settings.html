@@ -11,7 +11,7 @@ html, body{
   height: 100%;
 }
 body {
-  font-size: 12px;
+  font-size: 16px;
   font-family: "Helvetica Neue", "Lucida Grande", Arial, Helvetica, "Hiragino Kaku Gothic Pro", "ヒラギノ角ゴ Pro W3", Meiryo, sans-serif;
   font-weight: lighter;
   background: #fff;
@@ -34,6 +34,9 @@ li {
   margin: 0;
   padding: 0;
 }
+img {
+  vertical-align: middle;
+}
 #wrapper {
   margin: 0 auto;
   padding: 20px 0;
@@ -50,11 +53,14 @@ li {
   font-weight: 200;
   font-size: 20px;
 }
+#settings {
+  margin: 0 0 50px 0;
+}
 #settings li {
   margin: 0 0 10px 0;
 }
 #settings .description {
-  font-size: 10px;
+  font-size: 12px;
   color: #666;
   margin-left: 20px;
 }
@@ -64,14 +70,25 @@ function init(){
   var settings = JSON.parse(localStorage.getItem('settings'));
   document.getElementById('notify-setting').checked = settings.notify;
   document.getElementById('display-time').value = settings.display;
+  document.getElementById('notify-all').checked = settings.all;
+  document.getElementById('notify-favorites').value = settings.favorites;
+  allOrFavorite();
 }
 
 function save(){
   var settings = {
     notify: document.getElementById('notify-setting').checked,
-    display: document.getElementById('display-time').value
+    display: document.getElementById('display-time').value,
+    all: document.getElementById('notify-all').checked,
+    favorites: document.getElementById('notify-favorites').value.split(',')
   };
   localStorage.setItem('settings', JSON.stringify(settings));
+}
+
+function allOrFavorite(){
+  var enableAll = document.getElementById('notify-all').checked;
+  var inputFavorite = document.getElementById('notify-favorites');
+  inputFavorite.disabled = enableAll ? true : false;
 }
 
 function saveAndClose(){
@@ -84,12 +101,12 @@ function saveAndClose(){
 </head>
 <body onload="init();">
 <div id="wrapper">
-  <h1>CPAN Helper</h1>
+  <h1><img src="icon_128.png" />CPAN Helper</h1>
   <h2>Settings</h2>
   <ul id="settings">
     <li>
       <input type="checkbox" id="notify-setting">
-      <label for="notify-setting">Desktop notification</label><br />
+      <label for="notify-setting">Desktop notification</label>
     </li>
     <li>
       Duration for desktop notification:&nbsp;
@@ -101,9 +118,18 @@ function saveAndClose(){
         <option value="20">20</option>
       </select>&nbsp;sec
     </li>
-      <button id="saveAndClose" onclick="saveAndClose()">Save &amp; Close</button>
+    <br />
+    <li>
+      <input type="checkbox" id="notify-all" onclick="allOrFavorite()">
+      <label for="notify-all">Notify all releases</label>
     </li>
+    <li>
+      Only notify favorite modules and authors:&nbsp;
+      <input type="text" id="notify-favorites"><br />
+      <div class="description">ex. Plack,Text-Xslate,tokuhirom</div>
+     </li>
   </ul>
+  <button id="saveAndClose" onclick="saveAndClose()">Save &amp; Close</button>
 </div>
 </body>
 </html>

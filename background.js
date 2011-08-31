@@ -79,6 +79,8 @@ if ( !localStorage.getItem('settings') ) {
     var settings = {
         notify: true,
         display: 10,
+        all: true,
+        favorites: ['Plack']
     };
     localStorage.setItem('settings', JSON.stringify(settings));
 }
@@ -89,26 +91,40 @@ if ( !localStorage.getItem('settings') ) {
 var notified = {};
 google.load("feeds", "1");
 function loadFeed() {
+    var settings = JSON.parse(localStorage.getItem('settings'));
     var feed = new google.feeds.Feed("http://frepan.org/feed/index.rss");
+    feed.setNumEntries(20);
     feed.load(function(result) {
         if (!result.error) {
             for (var i = 0; i < result.feed.entries.length; i++) {
                 var entry = result.feed.entries[i];
                 entry.content.match(/img src="([^"]+)"/);
-                var image = RegExp.$1;
-
-                var settings = JSON.parse(localStorage.getItem('settings'));
+                var img_url = RegExp.$1;
                 if (settings.notify) {
-                    if (!notified[entry.title]) {
-                        notify(image, entry.title, entry.contentSnippet, entry.link, settings.display);
-                        notified[entry.title] = true;
+                    //Fetch favorite modules and authors
+                    if (!settings.all && settings.favorites.length) {
+                        for (var j= 0; j < settings.favorites.length; j++) {
+                            var re = new RegExp(settings.favorites[j], "i");
+                            if ( entry.title.match(re) != null ) {
+                                if (!notified[entry.title]) {
+                                    notify(img_url, entry.title, entry.contentSnippet, entry.link, settings.display);
+                                    notified[entry.title] = true;
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        if (!notified[entry.title]) {
+                            notify(img_url, entry.title, entry.contentSnippet, entry.link, settings.display);
+                            notified[entry.title] = true;
+                        }
                     }
                 }
             }
         }
     });
     //Run again next interval
-    setTimeout(loadFeed, 10000);  //
+    setTimeout(loadFeed, 10000);
 }
 // Once the Google Feeds API starts check the feeds
 google.setOnLoadCallback(loadFeed);
@@ -116,10 +132,10 @@ google.setOnLoadCallback(loadFeed);
 /*
  * Notify desktop
  */
-function notify(image_url, title, message, link, display){
+function notify(avatar, title, message, link, display){
     // Check permission
     if ( webkitNotifications.checkPermission() == 0 ) {
-        var popup = webkitNotifications.createNotification(image_url, title, message);
+        var popup = webkitNotifications.createNotification(avatar, title, message);
         popup.ondisplay = function(){
             setTimeout(function(){
                 popup.cancel();

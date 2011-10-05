@@ -54,7 +54,13 @@ function getSuggestions(text){
  */
 function searchOnCPAN(text){
     var obj = getSuggestions(text);
-    var path = text == obj[0].documentation ? '/module/' : '/search?q=';
+    var path;
+    if (obj.length && obj[0].documentation == text) {
+        path = '/module/';
+    }
+    else {
+        path = '/search?q=';
+    }
     var target_url = encodeURI(cpan_url + path + text);
     selectOrCreateTab(target_url);
 }
@@ -101,7 +107,7 @@ function loadFeed() {
                 entry.content.match(/img src="([^"]+)"/);
                 var img_url = RegExp.$1;
                 if (settings.notify) {
-                    //Fetch favorite modules and authors
+                    //Fetch keywords
                     if (!settings.all && settings.favorites.length) {
                         for (var j= 0; j < settings.favorites.length; j++) {
                             var re = new RegExp(settings.favorites[j], "i");

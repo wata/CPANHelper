@@ -3,69 +3,30 @@
 <head>
 <meta charset="utf-8">
 <title>CPAN Helper</title>
-<style>
-html, body{
-  border: 0;
-  margin: 0;
-  padding: 0;
-  height: 100%;
-}
+<style type="text/css">
+html, body{ border:0; margin:0; padding:0; height:100%; }
 body {
-  font-size: 16px;
-  font-family: "Helvetica Neue", "Lucida Grande", Arial, Helvetica, "Hiragino Kaku Gothic Pro", "ヒラギノ角ゴ Pro W3", Meiryo, sans-serif;
-  font-weight: lighter;
-  background: #fff;
-  color: #141414;
+font-size:16px;
+font-family:"Helvetica Neue", "Lucida Grande", Arial, Helvetica, "Hiragino Kaku Gothic Pro", "ヒラギノ角ゴ Pro W3", Meiryo, sans-serif;
+font-weight:lighter;
+background:#fff;
+color:#141414;
 }
-a, a:visited {
-  color: #666;
-  text-decoration: none;
-}
-a:hover {
-  background: #fff;
-  color: #0571A0;
-}
-ul, ol {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-li {
-  margin: 0;
-  padding: 0;
-}
-img {
-  vertical-align: middle;
-}
-#wrapper {
-  margin: 0 auto;
-  padding: 20px 0;
-  width: 600px;
-}
-#wrapper h1 {
-  font-weight: 100;
-  font-size: 50px;
-  letter-spacing: -1px;
-  line-height: 80%;
-  color: #666;
-}
-#wrapper h2 {
-  font-weight: 200;
-  font-size: 20px;
-}
-#settings {
-  margin: 0 0 50px 0;
-}
-#settings li {
-  margin: 0 0 10px 0;
-}
-#settings .description {
-  font-size: 12px;
-  color: #666;
-  margin-left: 20px;
-}
+a, a:visited { color:#666; text-decoration:none; }
+a:hover { color:#426DC9; }
+ul, ol { margin:0; padding:0; list-style:none; }
+li { margin:0; padding:0; }
+img { vertical-align:middle; }
+footer { margin-top:100px; font-size:12px; text-align:right; }
+
+#wrapper { margin:0 auto; padding:20px 0; width:600px; }
+#wrapper h1 { font-weight:100; font-size:50px; letter-spacing:-1px; line-height:80%; color:#666; }
+#wrapper h2 { font-weight:200; font-size:20px; }
+#settings { margin:0 0 50px 0; }
+#settings li { margin:0 0 10px 0; }
+#settings .description { font-size:12px; color:#666; margin-left:10px; }
 </style>
-<script>
+<script type="text/javascript">
 function init(){
   var settings = JSON.parse(localStorage.getItem('settings'));
   document.getElementById('notify-setting').checked = settings.notify;
@@ -102,6 +63,7 @@ function saveAndClose(){
 <body onload="init();">
 <div id="wrapper">
   <h1><img src="icon_128.png" />CPAN Helper</h1>
+
   <h2>Settings</h2>
   <ul id="settings">
     <li>
@@ -117,19 +79,27 @@ function saveAndClose(){
         <option value="15">15</option>
         <option value="20">20</option>
       </select>&nbsp;sec
-    </li>
-    <br />
+    </li><br />
     <li>
       <input type="checkbox" id="notify-all" onclick="allOrFavorite()">
       <label for="notify-all">Notify all releases</label>
     </li>
     <li>
-      Only notify favorite modules and authors:&nbsp;
-      <input type="text" id="notify-favorites"><br />
-      <div class="description">ex. Plack,Text-Xslate,tokuhirom</div>
-     </li>
+      or only notify watch modules and authors?<br /><br />
+      <input type="text" id="notify-favorites" size="60" />
+      <span class="description">ex. Plack,Text-Xslate,tokuhirom</span>
+     </li><!--<br />
+    <li>
+      <input type="checkbox" id="contentScript" onclick="">
+      <label for="contentScript">Content script on MetaCPAN</label>
+    </li>-->
   </ul>
   <button id="saveAndClose" onclick="saveAndClose()">Save &amp; Close</button>
+
+  <footer>
+    The source code is available on
+    <a href="https://github.com/wata/CPANHelper" target="_blank">https://github.com/wata/CPANHelper</a>.
+  </footer>
 </div>
 </body>
 </html>

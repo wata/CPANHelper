@@ -1,6 +1,6 @@
 {
   "name": "CPAN Helper",
-  "version": "0.3",
+  "version": "0.4",
   "description": "Tiny helper extension for CPAN",
   "icons": {
     "16": "icon_16.png",
@@ -12,7 +12,8 @@
   },
   "browser_action": {
     "default_icon": "icon_19.png",
-    "default_title": "CPAN Helper"
+    "default_title": "CPAN Helper",
+    "default_popup": "popup.html"
   },
   "background_page": "background.html",
   "content_scripts": [
@@ -33,4 +34,3 @@
   "homepage_url": "https://github.com/wata/CPANHelper",
   "options_page": "settings.html"
 }
-

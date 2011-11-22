@@ -1,10 +1,5 @@
 var cpan_url = 'https://metacpan.org';
 
-// Click from Browser Action Icon
-chrome.browserAction.onClicked.addListener(function(tab) {
-    selectOrCreateTab(cpan_url);
-});
-
 // Config of search box
 chrome.omnibox.onInputEntered.addListener(
     function(text){
@@ -107,8 +102,8 @@ function loadFeed() {
                 entry.content.match(/img src="([^"]+)"/);
                 var img_url = RegExp.$1;
                 if (settings.notify) {
-                    //Fetch keywords
-                    if (!settings.all && settings.favorites.length) {
+                    // Fetch keywords
+                    if (settings.favorites.length) {
                         for (var j= 0; j < settings.favorites.length; j++) {
                             var re = new RegExp(settings.favorites[j], "i");
                             if ( entry.title.match(re) != null ) {

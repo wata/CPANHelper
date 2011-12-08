@@ -101,7 +101,7 @@ function loadFeed(){
                         link   : entry.link
                     };
                     // Fetch keywords
-                    if (!notified[entry.title] && settings.favorites.length) {
+                    if (!notified[entry.title] && !settings.all && settings.favorites.length) {
                         $(settings.favorites).each(function(){
                             var keyword = this;
                             var re = new RegExp(keyword, "i");
@@ -135,9 +135,9 @@ function notify(notification){
     // Check permission
     if (webkitNotifications.checkPermission() == 0) {
         var popup = webkitNotifications.createNotification(
-            notification[avatar],
-            notification[title],
-            notification[message]
+            notification['avatar'],
+            notification['title'],
+            notification['message']
         );
         popup.ondisplay = function(){
             setTimeout(function(){

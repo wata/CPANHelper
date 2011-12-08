@@ -1,6 +1,6 @@
 {
   "name": "CPAN Helper",
-  "version": "0.4",
+  "version": "0.5",
   "description": "Tiny helper extension for CPAN",
   "icons": {
     "16": "icon_16.png",

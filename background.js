@@ -1,36 +1,33 @@
-var cpan_url = 'https://metacpan.org';
+var cpan_url    = 'https://metacpan.org';
+var settings    = {};
+var notified    = {};
+var modules     = {};
+var suggestions = {};
+if (!localStorage.getItem('settings')) {
+    settings = {
+        notify   : true,
+        display  : 10,
+        all      : true,
+        favorites: ['Plack']
+    };
+    localStorage.setItem('settings', JSON.stringify(settings));
+}
+else {
+    settings = JSON.parse(localStorage.getItem('settings'));
+}
 
-// Config of search box
-chrome.omnibox.onInputEntered.addListener(
-    function(text){
-        searchOnCPAN(text);
-    }
-);
+chrome.omnibox.onInputEntered.addListener(function(text){
+    searchOnCPAN(text);
+});
 
-// Suggest of inputting
-chrome.omnibox.onInputChanged.addListener(
-    function(text, suggest){
-        var obj = getSuggestions(text);
-        var suggestions = [];
-        for ( var i = 0, len = obj.length; i < len; i++ ) {
-            var tmp = {
-                content: obj[i].documentation,
-                description: obj[i].documentation + ' ' + obj[i].author + '/' + obj[i].release
-            };
-            suggestions.push(tmp);
-        }
-        suggest(suggestions);
-    }
-);
+chrome.omnibox.onInputChanged.addListener(function(text, suggest){
+    suggest(suggestions[text] || getSuggestions(text));
+});
 
-// Config of context menu
 chrome.contextMenus.create({
-    title: 'Search the CPAN',
+    title   : 'Search the CPAN',
     contexts: ['selection'],
-    onclick: function(info, tab){
-        var text = info.selectionText;
-        searchOnCPAN(text);
-    }
+    onclick : function(info, tab){ searchOnCPAN(info.selectionText) }
 });
 
 /*
@@ -41,21 +38,29 @@ function getSuggestions(text){
     var xhr = new XMLHttpRequest();
     xhr.open("GET", query, false);
     xhr.send();
-    return JSON.parse(xhr.responseText);
+    var json = JSON.parse(xhr.responseText);
+    console.log(json);    // for debug
+    suggestions[text] = [];
+    $(json).each(function(){
+        // Save module
+        modules[this.documentation] = {
+            package: this.documentation,
+            author : this.author,
+        };
+        // Save suggestion
+        suggestions[text].push({
+            content    : this.documentation,
+            description: this.documentation + ' ' + this.author + '/' + this.release
+        });
+    });
+    return suggestions[text];
 }
 
 /*
  * Search on metacpan.org
  */
 function searchOnCPAN(text){
-    var obj = getSuggestions(text);
-    var path;
-    if (obj.length && obj[0].documentation == text) {
-        path = '/module/';
-    }
-    else {
-        path = '/search?q=';
-    }
+    var path       = modules[text] ? '/module/' : '/search?q=';
     var target_url = encodeURI(cpan_url + path + text);
     selectOrCreateTab(target_url);
 }
@@ -65,66 +70,59 @@ function searchOnCPAN(text){
  */
 function selectOrCreateTab(url){
     chrome.tabs.getAllInWindow(null, function(tabs){
-        for ( var i = 0, len = tabs.length; i < len; i++ ) {
-            if ( tabs[i].url == url ) {
-                chrome.tabs.update(tabs[i].id, { selected: true });
+        $(tabs).each(function(){
+            if (this.url == url) {
+                chrome.tabs.update(this.id, { selected: true });
                 return;
             }
-        }
+        });
         chrome.tabs.create({ url: url });
     });
 }
 
-// Default settings
-if ( !localStorage.getItem('settings') ) {
-    var settings = {
-        notify: true,
-        display: 10,
-        all: true,
-        favorites: ['Plack']
-    };
-    localStorage.setItem('settings', JSON.stringify(settings));
-}
-
 /*
- * Check CPAN release
+ * Check CPAN releases
  */
-var notified = {};
 google.load("feeds", "1");
-function loadFeed() {
-    var settings = JSON.parse(localStorage.getItem('settings'));
+function loadFeed(){
     var feed = new google.feeds.Feed("http://frepan.org/feed/index.rss");
     feed.setNumEntries(20);
-    feed.load(function(result) {
+    feed.load(function(result){
         if (!result.error) {
-            for (var i = 0; i < result.feed.entries.length; i++) {
-                var entry = result.feed.entries[i];
-                entry.content.match(/img src="([^"]+)"/);
-                var img_url = RegExp.$1;
+            var arry = [];
+            $(result.feed.entries).each(function(){
+                var entry = this;
                 if (settings.notify) {
+                    entry.content.match(/img src="([^"]+)"/);
+                    var notification = {
+                        avatar : RegExp.$1,
+                        title  : entry.title,
+                        message: entry.contentSnippet,
+                        link   : entry.link
+                    };
                     // Fetch keywords
-                    if (settings.favorites.length) {
-                        for (var j= 0; j < settings.favorites.length; j++) {
-                            var re = new RegExp(settings.favorites[j], "i");
-                            if ( entry.title.match(re) != null ) {
-                                if (!notified[entry.title]) {
-                                    notify(img_url, entry.title, entry.contentSnippet, entry.link, settings.display);
-                                    notified[entry.title] = true;
-                                }
+                    if (!notified[entry.title] && settings.favorites.length) {
+                        $(settings.favorites).each(function(){
+                            var keyword = this;
+                            var re = new RegExp(keyword, "i");
+                            if (entry.title.match(re) != null) {
+                                notify(notification);
+                                notified[entry.title] = true;
                             }
-                        }
+                        });
                     }
-                    else {
-                        if (!notified[entry.title]) {
-                            notify(img_url, entry.title, entry.contentSnippet, entry.link, settings.display);
-                            notified[entry.title] = true;
-                        }
+                    else if (!notified[entry.title]) {
+                        notify(notification);
+                        notified[entry.title] = true;
                     }
+                    arry.push(notification);
                 }
-            }
+            });
+            // Save notifications for popup.html
+            localStorage.setItem('notifications', JSON.stringify(arry));
         }
     });
-    //Run again next interval
+    // Run again next interval
     setTimeout(loadFeed, 10000);
 }
 // Once the Google Feeds API starts check the feeds
@@ -133,17 +131,21 @@ google.setOnLoadCallback(loadFeed);
 /*
  * Notify desktop
  */
-function notify(avatar, title, message, link, display){
+function notify(notification){
     // Check permission
-    if ( webkitNotifications.checkPermission() == 0 ) {
-        var popup = webkitNotifications.createNotification(avatar, title, message);
+    if (webkitNotifications.checkPermission() == 0) {
+        var popup = webkitNotifications.createNotification(
+            notification[avatar],
+            notification[title],
+            notification[message]
+        );
         popup.ondisplay = function(){
             setTimeout(function(){
                 popup.cancel();
-            }, display * 1000);
+            }, settings.display * 1000);
         };
         popup.onclick = function(){
-            selectOrCreateTab(link);
+            selectOrCreateTab(notification[link]);
             popup.cancel();
         };
         popup.show();

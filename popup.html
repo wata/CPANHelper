@@ -2,24 +2,20 @@
 <html>
 <head>
 <meta charset="utf-8" />
-<style type="text/css">
+<style>
 html, body { margin:0; padding:0; }
 ul, ol { margin:0; padding:0; list-style:none; }
 li { margin:0; padding:0; }
-
 body {
 padding-right:20px;
 font-size:14px;
 line-height:1.4;
 font-family:"Helvetica Neue", "Lucida Grande", Arial, Helvetica, "Hiragino Kaku Gothic Pro", "ヒラギノ角ゴ Pro W3", Meiryo, sans-serif;
 }
-
 #wrapper { width:400px; height:500px; }
-
 header { border:1px solid #CCC; background:#EAEEF3; overflow:hidden; clear:both; }
 header li { padding:7px 15px; float:left; color:#426DC9; cursor:pointer; text-shadow:white 0 1px 1px; }
 header .active { color:black; text-shadow:#BBCEE9 0 1px 1px; background:#BBCEE9; }
-
 #notifications { word-break:break-all; }
 #notifications li a {
 display:block;
@@ -37,66 +33,52 @@ color:#426DC9;
 -webkit-box-shadow:1px 0 3px rgba(0, 0, 0, 0.2);
 background:#EBEBEB -webkit-linear-gradient(#FEFEFE, #F8F8F8 40%, #E9E9E9);
 }
-
 .author { float:left; }
 .author img { width:32px; height:32px; border:1px solid #DDD; }
 .body { margin-left:40px; }
 </style>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
-<script type="text/javascript" src="https://www.google.com/jsapi"></script>
-<script type="text/javascript">
-google.load("feeds", "1");
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
+<script>
 function init(){
-  var settings = JSON.parse(localStorage.getItem('settings'));
-  var feed = new google.feeds.Feed("http://frepan.org/feed/index.rss");
-  feed.setNumEntries(20);
-  feed.load(function(result) {
-    if (!result.error) {
-      var public = $('<ul>'), watched = $('<ul>'), count = 0;
-      for (var i = 0; i < result.feed.entries.length; i++) {
-        var entry = result.feed.entries[i];
-        entry.content.match(/img src="([^"]+)"/);
-        var img  =  RegExp.$1;
-        var html =  '<li><a href="' + entry.link + '" target="_blank">';
-            html += '<div class="author"><img src="' + img + '" width="32" height="32" /></div>';
-            html += '<div class="body"><strong>' + entry.title + '</strong><br />'
-              + entry.contentSnippet + '</div>';
-            html += '</a></li>';
-
-        //Fetch keywords
-        if (settings.favorites.length) {
-          for (var j= 0; j < settings.favorites.length; j++) {
-            var re = new RegExp(settings.favorites[j], "i");
-            if (entry.title.match(re) != null) {
-              watched.append(html);
-              count++;
-            }
-          }
+  var settings      = JSON.parse(localStorage.getItem('settings'));
+  var notifications = JSON.parse(localStorage.getItem('notifications'));
+  var public = $('<ul>'), watched = $('<ul>'), count = 0;
+  $(notifications).each(function(){
+    var entry = this;
+    var html =  '<li><a href="' + entry.link + '" target="_blank">';
+    html += '<div class="author"><img src="' + entry.avatar + '" width="32" height="32" /></div>';
+    html += '<div class="body"><strong>' + entry.title + '</strong><br />'
+      + entry.message + '</div>';
+    html += '</a></li>';
+    // Fetch keywords
+    if (settings.favorites.length) {
+      $(settings.favorites).each(function(){
+        var keyword = this;
+        var re = new RegExp(keyword, "i");
+        if (entry.title.match(re) != null) {
+          watched.append(html);
+          count++;
         }
-        public.append(html);
-      }
-
-      $('#public').html(public);
-      $('#watched').html(watched);
-      $('#nav-watched b').html(count);
+      });
     }
+    public.append(html);
   });
+
+  $('#public').html(public);
+  $('#watched').html(watched);
+  $('#nav-watched b').html(count);
 
   $('#nav-public, #nav-watched').click(function(){
     $('header li').removeClass('active');
     $(this).addClass('active');
-    $('#notifications > div').each(function(){
-      $(this).hide();
-    });
+    $('#notifications > div').each(function(){ $(this).hide() });
     $('#notifications #' + $(this).attr('title')).show();
   });
 
   $('#nav-settings').click(function(){
     chrome.tabs.create(
       { url: 'settings.html'},
-      function(tab) {
-        window.close(); 
-      }
+      function(tab){ window.close() }
     );
   });
 }

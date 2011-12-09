@@ -1,19 +1,14 @@
 var cpan_url    = 'https://metacpan.org';
-var settings    = {};
 var notified    = {};
 var modules     = {};
 var suggestions = {};
 if (!localStorage.getItem('settings')) {
-    settings = {
+    localStorage.setItem('settings', JSON.stringify({
         notify   : true,
         display  : 10,
         all      : true,
         favorites: ['Plack']
-    };
-    localStorage.setItem('settings', JSON.stringify(settings));
-}
-else {
-    settings = JSON.parse(localStorage.getItem('settings'));
+    }));
 }
 
 chrome.omnibox.onInputEntered.addListener(function(text){
@@ -85,6 +80,7 @@ function selectOrCreateTab(url){
  */
 google.load("feeds", "1");
 function loadFeed(){
+    var settings = JSON.parse(localStorage.getItem('settings'));
     var feed = new google.feeds.Feed("http://frepan.org/feed/index.rss");
     feed.setNumEntries(20);
     feed.load(function(result){
@@ -106,13 +102,13 @@ function loadFeed(){
                             var keyword = this;
                             var re = new RegExp(keyword, "i");
                             if (entry.title.match(re) != null) {
-                                notify(notification);
+                                notify(notification, settings.display);
                                 notified[entry.title] = true;
                             }
                         });
                     }
                     else if (!notified[entry.title]) {
-                        notify(notification);
+                        notify(notification, settings.display);
                         notified[entry.title] = true;
                     }
                     arry.push(notification);
@@ -131,7 +127,7 @@ google.setOnLoadCallback(loadFeed);
 /*
  * Notify desktop
  */
-function notify(notification){
+function notify(notification, display){
     // Check permission
     if (webkitNotifications.checkPermission() == 0) {
         var popup = webkitNotifications.createNotification(
@@ -142,7 +138,7 @@ function notify(notification){
         popup.ondisplay = function(){
             setTimeout(function(){
                 popup.cancel();
-            }, settings.display * 1000);
+            }, display * 1000);
         };
         popup.onclick = function(){
             selectOrCreateTab(notification[link]);

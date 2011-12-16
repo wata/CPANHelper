@@ -16,7 +16,16 @@ chrome.omnibox.onInputEntered.addListener(function(text){
 });
 
 chrome.omnibox.onInputChanged.addListener(function(text, suggest){
-    suggest(suggestions[text] || getSuggestions(text));
+    // for paging
+    var start = 0;
+    if (text.match(/(\.+)$/)) {
+        var dots = RegExp.$1;
+        start = 5 * (dots.split(/\./).length - 1);
+        text = text.replace(/\.+$/, '');
+    }
+
+    var ret = suggestions[text] || getSuggestions(text);
+    suggest(ret.slice(start));
 });
 
 chrome.contextMenus.create({
